@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime On-Going dan Top Anime</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .navbar {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .search-bar {
+            padding: 5px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .anime-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        .anime-item {
+            width: 150px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .anime-item img {
+            width: 100%;
+            height: auto;
+        }
+        .anime-item h3 {
+            font-size: 0.9em;
+            margin: 10px;
+            text-align: center;
+        }
+        .show-more, .back-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .alphabet-sidebar {
+            position: absolute;
+            right: 10px;
+            top: 100px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f1f1f1;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .alphabet-sidebar button {
+            background: none;
+            border: none;
+            font-size: 0.8em;
+            cursor: pointer;
+            margin: 2px 0;
+        }
+        @media (max-width: 600px) {
+            .anime-item {
+                width: 100%;
+            }
+            .alphabet-sidebar {
+                position: static;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        Bianime
+        <input type="text" class="search-bar" id="search-bar" placeholder="Cari Anime...">
+    </div>
+    <h1>Anime On-Going dan Top Anime</h1>
+    <h2>Anime On-Going</h2>
+    <div class="anime-container" id="ongoing-anime-container"></div>
+    <h2>Top Anime</h2>
+    <div class="anime-container" id="top-anime-container"></div>
+    <button class="show-more" id="show-more">Lihat Semua Anime</button>
+    <button class="back-button" id="back-button" style="display: none;">Kembali ke Halaman Awal</button>
+    
+    <div class="alphabet-sidebar" id="alphabet-sidebar">
+        <button onclick="filterAnimeByLetter('a')">A</button>
+        <button onclick="filterAnimeByLetter('b')">B</button>
+        <button onclick="filterAnimeByLetter('c')">C</button>
+        <button onclick="filterAnimeByLetter('d')">D</button>
+        <button onclick="filterAnimeByLetter('e')">E</button>
+        <button onclick="filterAnimeByLetter('f')">F</button>
+        <button onclick="filterAnimeByLetter('g')">G</button>
+        <button onclick="filterAnimeByLetter('h')">H</button>
+        <button onclick="filterAnimeByLetter('i')">I</button>
+        <button onclick="filterAnimeByLetter('j')">J</button>
+        <button onclick="filterAnimeByLetter('k')">K</button>
+        <button onclick="filterAnimeByLetter('l')">L</button>
+        <button onclick="filterAnimeByLetter('m')">M</button>
+        <button onclick="filterAnimeByLetter('n')">N</button>
+        <button onclick="filterAnimeByLetter('o')">O</button>
+        <button onclick="filterAnimeByLetter('p')">P</button>
+        <button onclick="filterAnimeByLetter('q')">Q</button>
+        <button onclick="filterAnimeByLetter('r')">R</button>
+        <button onclick="filterAnimeByLetter('s')">S</button>
+        <button onclick="filterAnimeByLetter('t')">T</button>
+        <button onclick="filterAnimeByLetter('u')">U</button>
+        <button onclick="filterAnimeByLetter('v')">V</button>
+        <button onclick="filterAnimeByLetter('w')">W</button>
+        <button onclick="filterAnimeByLetter('x')">X</button>
+        <button onclick="filterAnimeByLetter('y')">Y</button>
+        <button onclick="filterAnimeByLetter('z')">Z</button>
+    </div>
+
+    <script>
+        async function fetchAndCacheAnime() {
+            const cacheKey = 'animeData';
+            const cacheExpiration = 24 * 60 * 60 * 1000; // 24 jam dalam milidetik
+    
+            const cachedData = localStorage.getItem(cacheKey);
+            const cachedTime = localStorage.getItem(`${cacheKey}_time`);
+    
+            if (cachedData && cachedTime && (Date.now() - cachedTime < cacheExpiration)) {
+                return JSON.parse(cachedData);
+            }
+    
+            try {
+                const response = await fetch('https://api.jikan.moe/v4/seasons/now');
+                const data = await response.json();
+                localStorage.setItem(cacheKey, JSON.stringify(data));
+                localStorage.setItem(`${cacheKey}_time`, Date.now());
+                return data;
+            } catch (error) {
+                console.error('Error fetching anime:', error);
+                return null;
+            }
+        }
+
+        async function fetchAndCacheTopAnime() {
+            const cacheKey = 'topAnimeData';
+            const cacheExpiration = 24 * 60 * 60 * 1000; // 24 jam dalam milidetik
+    
+            const cachedData = localStorage.getItem(cacheKey);
+            const cachedTime = localStorage.getItem(`${cacheKey}_time`);
+    
+            if (cachedData && cachedTime && (Date.now() - cachedTime < cacheExpiration)) {
+                return JSON.parse(cachedData);
+            }
+    
+            try {
+                const response = await fetch('https://api.jikan.moe/v4/top/anime');
+                const data = await response.json();
+                localStorage.setItem(cacheKey, JSON.stringify(data));
+                localStorage.setItem(`${cacheKey}_time`, Date.now());
+                return data;
+            } catch (error) {
+                console.error('Error fetching top anime:', error);
+                return null;
+            }
+        }
+    
+        async function displayAnime(showAll = false, searchQuery = '') {
+            const ongoingData = await fetchAndCacheAnime();
+            const topData = await fetchAndCacheTopAnime();
+            if (!ongoingData || !topData) return;
+    
+            const ongoingAnimeContainer = document.getElementById('ongoing-anime-container');
+            const topAnimeContainer = document.getElementById('top-anime-container');
+            ongoingAnimeContainer.innerHTML = '';
+            topAnimeContainer.innerHTML = '';
+    
+            let ongoingAnimeList = showAll ? ongoingData.data : ongoingData.data.slice(0, 3);
+            let topAnimeList = showAll ? topData.data : topData.data.slice(0, 3);
+            
+            if (searchQuery) {
+                ongoingAnimeList = ongoingData.data.filter(anime => anime.title.toLowerCase().includes(searchQuery.toLowerCase()));
+                topAnimeList = topData.data.filter(anime => anime.title.toLowerCase().includes(searchQuery.toLowerCase()));
+            }
+    
+            ongoingAnimeList.forEach(anime => {
+                const animeItem = document.createElement('div');
+                animeItem.classList.add('anime-item');
+    
+                const animeImage = document.createElement('img');
+                animeImage.src = anime.images.jpg.image_url;
+                animeImage.alt = anime.title;
+    
+                const animeTitle = document.createElement('h3');
+                animeTitle.textContent = anime.title;
+    
+                animeItem.appendChild(animeImage);
+                animeItem.appendChild(animeTitle);
+                ongoingAnimeContainer.appendChild(animeItem);
+            });
+
+            topAnimeList.forEach(anime => {
+                const animeItem = document.createElement('div');
+                animeItem.classList.add('anime-item');
+    
+                const animeImage = document.createElement('img');
+                animeImage.src = anime.images.jpg.image_url;
+                animeImage.alt = anime.title;
+    
+                const animeTitle = document.createElement('h3');
+                animeTitle.textContent = anime.title;
+    
+                animeItem.appendChild(animeImage);
+                animeItem.appendChild(animeTitle);
+                topAnimeContainer.appendChild(animeItem);
+            });
+
+            if (showAll) {
+                document.getElementById('back-button').style.display = 'block';
+            }
+        }
+
+        async function filterAnimeByLetter(letter) {
+            try {
+                const response = await fetch(`https://api.jikan.moe/v4/anime?q=${letter}&order_by=start_date&sort=desc&limit=10`);
+                const data = await response.json();
+                const animeContainer = document.getElementById('ongoing-anime-container');
+                animeContainer.innerHTML = '';
+                data.data.forEach(anime => {
+                    const animeItem = document.createElement('div');
+                    animeItem.classList.add('anime-item');
+        
+                    const animeImage = document.createElement('img');
+                    animeImage.src = anime.images.jpg.image_url;
+                    animeImage.alt = anime.title;
+        
+                    const animeTitle = document.createElement('h3');
+                    animeTitle.textContent = anime.title;
+        
+                    animeItem.appendChild(animeImage);
+                    animeItem.appendChild(animeTitle);
+                    animeContainer.appendChild(animeItem);
+                });
+            } catch (error) {
+                console.error('Error fetching anime by letter:', error);
+            }
+        }
+    
+        document.getElementById('show-more').addEventListener('click', () => {
+            displayAnime(true);
+            document.getElementById('show-more').style.display = 'none';
+        });
+
+        document.getElementById('back-button').addEventListener('click', () => {
+            displayAnime(false);
+            document.getElementById('show-more').style.display = 'block';
+            document.getElementById('back-button').style.display = 'none';
+        });
+
+        document.getElementById('search-bar').addEventListener('input', (event) => {
+            const searchQuery = event.target.value;
+            displayAnime(false, searchQuery);
+        });
+    
+        displayAnime();
+    </script>
+    
+</body>
+</html>
